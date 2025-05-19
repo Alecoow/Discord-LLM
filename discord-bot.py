@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import requests
 import json
+import asyncio
 
 import conversation
 convo = conversation.ConversationBuilder()
@@ -13,6 +14,8 @@ intents.message_content = True
 client = discord.Client(intents=intents)
 
 load_dotenv()
+
+response_lock = asyncio.Lock()
 
 # LLM API
 LLM_ENDPOINT = os.environ.get('LLM_ENDPOINT')
@@ -28,13 +31,20 @@ async def on_ready():
 async def on_message(message):
     if message.author == client.user:
         return
-
-    if message.content.startswith('$msg'):
-        prefix = '$msg'
-        msg = message.content.lstrip(prefix)
-        convo.append_message(msg)
-        payload = convo.build_payload()
-        await message.channel.send(message_llm(payload))
+    
+    elif message.content.startswith('$msg'):
+        if response_lock.locked():
+            await message.channel.send("Server busy! Please wait")
+            return
+        async with response_lock:
+            prefix = '$msg'
+            msg = message.content.lstrip(prefix)
+            convo.append_message(msg)
+            payload = convo.build_payload()
+            await message.channel.send("Generating...")
+            loop = asyncio.get_running_loop()
+            response = await loop.run_in_executor(None, message_llm, payload)
+            await message.channel.send(response)
         
 def query_models():
     try:
@@ -52,8 +62,10 @@ def message_llm(message):
         )
         response.raise_for_status()
         json_response = response.json()
-        json_response = (json_response[:2000] + '..') if len(json_response) > 2000 else json_response
-        return json_response["choices"][0]["message"]["content"]
+        parsed_response = json_response["choices"][0]["message"]["content"]
+        parsed_response = (parsed_response[:1995] + '...') if len(parsed_response) > 1995 else json_response
+        return parsed_response
+    
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
         if response is not None:
