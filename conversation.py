@@ -1,5 +1,10 @@
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class ConversationBuilder:
-    def __init__(self, model="qwen3-0.6b", stream=False):
+    def __init__(self, model=os.environ.get('LLM_MODEL'), stream=False):
         self.history = []
         self.model = model
         self.stream = stream
