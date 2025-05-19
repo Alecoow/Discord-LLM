@@ -5,8 +5,8 @@ import requests
 import json
 import asyncio
 
-import conversation
-convo = conversation.ConversationBuilder()
+import conversation_builder
+convo = conversation_builder.ConversationBuilder()
 
 # Discord
 intents = discord.Intents.default()
