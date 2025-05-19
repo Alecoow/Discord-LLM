@@ -52,7 +52,7 @@ def message_llm(message):
         )
         response.raise_for_status()
         json_response = response.json()
-
+        json_response = (json_response[:2000] + '..') if len(json_response) > 2000 else json_response
         return json_response["choices"][0]["message"]["content"]
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
