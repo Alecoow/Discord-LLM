@@ -36,7 +36,7 @@ async def on_message(message):
         payload = convo.build_payload()
         await message.channel.send(message_llm(payload))
         
-def request_models():
+def query_models():
     try:
         response = requests.get(f'{LLM_ENDPOINT}/models')
         response.raise_for_status()
@@ -51,7 +51,9 @@ def message_llm(message):
             json=message
         )
         response.raise_for_status()
-        return response.json()
+        json_response = response.json()
+
+        return json_response["choices"][0]["message"]["content"]
     except requests.exceptions.RequestException as e:
         print(f"Request failed: {e}")
         if response is not None:
