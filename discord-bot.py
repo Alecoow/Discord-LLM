@@ -37,14 +37,17 @@ async def on_message(message):
             await message.channel.send("Server busy! Please wait")
             return
         async with response_lock:
-            prefix = '$msg'
-            msg = message.content.lstrip(prefix)
+            # we don't need to send $msg to the LLM
+            msg = message.content.lstrip('$msg')
             convo.append_message(msg)
             payload = convo.build_payload()
             await message.channel.send("Generating...")
             loop = asyncio.get_running_loop()
             response = await loop.run_in_executor(None, message_llm, payload)
+            convo.append_message(response, 'assistant')
             await message.channel.send(response)
+    elif message.content.startswith('$clear'):
+        convo.delete_history()
         
 def query_models():
     try:
@@ -61,9 +64,11 @@ def message_llm(message):
             json=message
         )
         response.raise_for_status()
+
+        # parse response to trim out unneccessary information + limit response to 2000 characters to comply with discord limits
         json_response = response.json()
         parsed_response = json_response["choices"][0]["message"]["content"]
-        parsed_response = (parsed_response[:1995] + '...') if len(parsed_response) > 1995 else parsed_response
+        parsed_response = (parsed_response[:1997] + '...') if len(parsed_response) > 1997 else parsed_response
         return parsed_response
     
     except requests.exceptions.RequestException as e:
