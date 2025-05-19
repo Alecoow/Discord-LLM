@@ -68,7 +68,7 @@ def message_llm(message):
         # parse response to trim out unneccessary information + limit response to 2000 characters to comply with discord limits
         json_response = response.json()
         parsed_response = json_response["choices"][0]["message"]["content"]
-        parsed_response = (parsed_response[:1997] + '...') if len(parsed_response) > 1997 else parsed_response
+        parsed_response = (parsed_response[:1978] + '\n\n [RESPONSE TRUNCATED]') if len(parsed_response) > 1978 else parsed_response
         return parsed_response
     
     except requests.exceptions.RequestException as e:
