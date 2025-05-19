@@ -63,7 +63,7 @@ def message_llm(message):
         response.raise_for_status()
         json_response = response.json()
         parsed_response = json_response["choices"][0]["message"]["content"]
-        parsed_response = (parsed_response[:1995] + '...') if len(parsed_response) > 1995 else json_response
+        parsed_response = (parsed_response[:1995] + '...') if len(parsed_response) > 1995 else parsed_response
         return parsed_response
     
     except requests.exceptions.RequestException as e:
