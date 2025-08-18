@@ -22,11 +22,14 @@ class ConversationBuilder:
             self.history.insert(0, {"role": "system", "content": message})
 
     def build_payload(self) -> dict:
-        return {
+        payload = {
             "stream": self.stream,
             "model": self.model,
             "messages": self.history,
         }
+        if self.history and self.history[0].get("role") == "system":
+            payload["system"] = self.history[0]["content"]
+        return payload
 
     def delete_history(self) -> None:
         # Keep system message if present
