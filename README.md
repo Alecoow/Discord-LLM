@@ -8,7 +8,7 @@ Once connected to a discord app/bot, you can interact with it by sending a messa
 - $clear - Clears chat history
 
 INSTALLATION:
-- This project is compatible with the OpenAI API standard, meaning you can theoretically connect any inference server to it that follows this standard, though It's only been tested with LM Studio.
+- This project is compatible with the OpenAI API standard, meaning you can theoretically connect any inference server to it that follows this standard.
 - You will need to create environment variables on your system specifying the following:
   - BOT_API_KEY: Your discord "app" key
   - LLM_ENDPOINT: The endpoint to your inference server.
