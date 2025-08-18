@@ -1,5 +1,6 @@
 from __future__ import annotations
 import asyncio
+import json
 import discord
 
 from settings import DISCORD_MAX, THINK_MARKER, BOT_API_KEY
@@ -47,10 +48,12 @@ async def on_message(message: discord.Message):
         convo.append_message(user_text)
         payload = convo.build_payload()
         payload["messages"] = sanitize_messages(payload.get("messages"))
+        print(json.dumps(payload, indent=2))
 
         await message.channel.send("Generating...")
 
         model_text = await llm.chat(payload)
+        print(f"Raw LLM response: {model_text}")
         if not model_text:
             await message.channel.send("LLM request failed.")
             return
