@@ -7,6 +7,7 @@ from settings import DISCORD_MAX, THINK_MARKER, BOT_API_KEY
 from llm_client import LLMClient
 from utils import sanitize_messages, strip_think, truncate_response
 from conversation_builder import ConversationBuilder
+from settings import LLM_ENDPOINT, LLM_MODEL
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -22,6 +23,23 @@ async def on_ready():
     print("Ready and waiting!")
     convo.set_system_message("You are a helpful, concise assistant. Prefer clear, direct answers.")
     await llm.start()
+
+    # Decide status text based on endpoint + model
+    status_text = "Running "
+    if "127.0.0.1" in LLM_ENDPOINT or "localhost" in LLM_ENDPOINT:
+        status_text += "Private LLM (Local)"
+    elif "openrouter.ai" in LLM_ENDPOINT:
+        if LLM_MODEL:
+            status_text += f"Public LLM ({LLM_MODEL})"
+        else:
+            status_text += "Public LLM"
+    else:
+        status_text = f"Custom API: {LLM_ENDPOINT}"
+
+    await client.change_presence(
+            activity=discord.Activity(type=discord.ActivityType.watching, name=status_text),
+            status=discord.Status.online
+    )
 
 @client.event
 async def on_message(message: discord.Message):
@@ -50,9 +68,9 @@ async def on_message(message: discord.Message):
         payload["messages"] = sanitize_messages(payload.get("messages"))
         print(json.dumps(payload, indent=2))
 
-        await message.channel.send("Generating...")
+        async with message.channel.typing():
+            model_text = await llm.chat(payload)
 
-        model_text = await llm.chat(payload)
         print(f"Raw LLM response: {model_text}")
         if not model_text:
             await message.channel.send("LLM request failed.")
