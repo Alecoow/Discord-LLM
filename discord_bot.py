@@ -29,14 +29,14 @@ async def on_message(message: discord.Message):
 
     if message.content.startswith("$clear"):
         convo.delete_history()
-        await message.channel.send("Memory cleared")
+        await message.reply("Memory cleared", mention_author=False)
         return
 
     if not (client.user and client.user.mentioned_in(message) and not message.mention_everyone):
         return
 
     if response_lock.locked():
-        await message.channel.send("Server busy! Please wait")
+        await message.reply("Server busy! Please wait")
         return
 
     async with response_lock:
